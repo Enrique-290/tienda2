@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PetPOS Demo – TPV Mascotas</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>🐾 PetPOS Demo</h1>
+    <span class="badge">Prueba rápida</span>
+  </header>
+
+  <div class="wrap">
+    <section class="panel">
+      <h2>Productos</h2>
+      <div class="tools">
+        <input id="search" placeholder="Buscar: croqueta, juguete, arena…" />
+        <select id="category">
+          <option value="">Todas las categorías</option>
+          <option value="Perros">Perros</option>
+          <option value="Gatos">Gatos</option>
+          <option value="Accesorios">Accesorios</option>
+          <option value="Higiene">Higiene</option>
+        </select>
+        <button class="btn" id="clearFilters">Limpiar</button>
+      </div>
+      <div id="productGrid" class="grid"></div>
+    </section>
+
+    <aside class="panel cart">
+      <h2>Carrito</h2>
+      <table>
+        <thead>
+          <tr><th>Artículo</th><th>Cant.</th><th>Precio</th><th>Subt.</th><th></th></tr>
+        </thead>
+        <tbody id="cartBody"><tr><td colspan="5" class="muted">Sin productos</td></tr></tbody>
+        <tfoot>
+          <tr><td colspan="3">Subtotal</td><td id="subTotal">$0.00</td><td></td></tr>
+          <tr><td colspan="3">IVA (16%)</td><td id="tax">$0.00</td><td></td></tr>
+          <tr><td colspan="3">Total</td><td id="grandTotal">$0.00</td><td></td></tr>
+        </tfoot>
+      </table>
+      <div class="totals">
+        <select id="payment">
+          <option value="Efectivo">Pago: Efectivo</option>
+          <option value="Tarjeta">Pago: Tarjeta</option>
+          <option value="Transferencia">Pago: Transferencia</option>
+        </select>
+        <div class="row-actions">
+          <button id="clearCart" class="btn gray">Vaciar</button>
+          <button id="checkout" class="btn">Cobrar & Imprimir</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
