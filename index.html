@@ -3,13 +3,17 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>NeuralApps · PetPOS Suite</title>
+  <title>PetPOS · NeuralApps</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <aside class="sidebar" id="sidebar">
-    <div class="brand">🐾 PetPOS</div>
-    <nav>
+  <!-- ====== SIDEBAR ====== -->
+  <aside class="sidebar">
+    <div class="brand">
+      <img id="brandLogo" alt="logo" />
+      <span id="brandName">PetPOS</span>
+    </div>
+    <nav class="navlist">
       <button data-view="dashboard" class="nav active">Dashboard</button>
       <button data-view="ventas" class="nav">Ventas</button>
       <button data-view="inventario" class="nav">Inventario</button>
@@ -22,11 +26,12 @@
     <div class="foot">NeuralApps</div>
   </aside>
 
+  <!-- ====== MAIN ====== -->
   <main class="content">
-    <!-- DASHBOARD -->
+    <!-- ========== DASH ========== -->
     <section id="view-dashboard" class="view active">
       <header class="header"><h1>Dashboard</h1></header>
-      <div class="row">
+      <div class="row kpis">
         <div class="card kpi"><div>Ventas de hoy</div><h2 id="kpi-ventas">$0.00</h2></div>
         <div class="card kpi"><div>Tickets emitidos</div><h2 id="kpi-tickets">0</h2></div>
         <div class="card kpi"><div>Productos en stock</div><h2 id="kpi-stock">0</h2></div>
@@ -45,22 +50,24 @@
       </div>
     </section>
 
-    <!-- VENTAS -->
+    <!-- ========== VENTAS ========== -->
     <section id="view-ventas" class="view">
       <header class="header"><h1>Ventas</h1></header>
       <div class="row gap wrap">
         <input id="v-search" placeholder="Buscar nombre, SKU, categoría, lote…">
         <select id="v-cat"></select>
-        <input id="v-min" type="number" min="0" step="0.01" placeholder="Precio mín">
-        <input id="v-max" type="number" min="0" step="0.01" placeholder="Precio máx">
+        <input id="v-min" type="number" step="0.01" placeholder="Precio mín">
+        <input id="v-max" type="number" step="0.01" placeholder="Precio máx">
         <button class="btn" id="v-clear">Limpiar</button>
       </div>
-      <div class="row cols">
+
+      <div class="panel2">
         <div class="card">
           <div class="title">Productos</div>
           <div id="v-grid" class="grid"></div>
         </div>
-        <div class="card">
+
+        <div class="card cartcard">
           <div class="title">Carrito</div>
           <div class="row gap wrap">
             <input id="v-customer" list="v-customers" placeholder="Cliente">
@@ -68,24 +75,28 @@
             <select id="v-pay">
               <option>Efectivo</option><option>Tarjeta</option><option>Transferencia</option>
             </select>
-            <input id="v-cash" type="number" step="0.01" placeholder="Efectivo recibido (opcional)">
+            <input id="v-cash" type="number" step="0.01" placeholder="Recibió (solo efectivo)">
           </div>
           <div class="row gap wrap">
             <input id="v-discount" type="number" step="0.01" placeholder="Descuento">
             <select id="v-discount-type"><option value="amount">$ MXN</option><option value="percent">% Porcentaje</option></select>
           </div>
-          <table class="table">
-            <thead><tr><th>Artículo</th><th>SKU</th><th>Stock</th><th>Cant.</th><th>P.Unit</th><th>Subt.</th><th></th></tr></thead>
-            <tbody id="v-cart"><tr><td colspan="7" class="muted">Sin productos</td></tr></tbody>
-            <tfoot>
-              <tr><td colspan="5">Subtotal</td><td id="v-sub">$0.00</td><td></td></tr>
-              <tr><td colspan="5">Descuento</td><td id="v-disc">$0.00</td><td></td></tr>
-              <tr><td colspan="5">Base IVA</td><td id="v-base">$0.00</td><td></td></tr>
-              <tr><td colspan="5">IVA</td><td id="v-iva">$0.00</td><td></td></tr>
-              <tr><td colspan="5">Total</td><td id="v-total">$0.00</td><td></td></tr>
-              <tr><td colspan="5">Cambio</td><td id="v-change">$0.00</td><td></td></tr>
-            </tfoot>
-          </table>
+
+          <div class="cartwrap">
+            <table class="table">
+              <thead><tr><th>Artículo</th><th>SKU</th><th>Stock</th><th>Cant.</th><th>P.Unit</th><th>Subt.</th><th></th></tr></thead>
+              <tbody id="v-cart"><tr><td colspan="7" class="muted">Sin productos</td></tr></tbody>
+              <tfoot>
+                <tr><td colspan="5">Subtotal</td><td id="v-sub">$0.00</td><td></td></tr>
+                <tr><td colspan="5">Descuento</td><td id="v-disc">$0.00</td><td></td></tr>
+                <tr><td colspan="5">Base IVA</td><td id="v-base">$0.00</td><td></td></tr>
+                <tr><td colspan="5">IVA</td><td id="v-iva">$0.00</td><td></td></tr>
+                <tr><td colspan="5">Total</td><td id="v-total">$0.00</td><td></td></tr>
+                <tr><td colspan="5">Cambio</td><td id="v-change">$0.00</td><td></td></tr>
+              </tfoot>
+            </table>
+          </div>
+
           <div class="row gap">
             <button class="btn gray" id="v-clear-cart">Borrar carrito</button>
             <button class="btn" id="v-checkout">Confirmar & Imprimir</button>
@@ -94,9 +105,10 @@
       </div>
     </section>
 
-    <!-- INVENTARIO -->
+    <!-- ========== INVENTARIO ========== -->
     <section id="view-inventario" class="view">
       <header class="header"><h1>Inventario</h1></header>
+
       <div class="card">
         <div class="row gap wrap">
           <input id="p-sku" placeholder="SKU">
@@ -110,27 +122,36 @@
           <input id="p-min" type="number" step="1" placeholder="Stock mínimo">
           <input id="p-exp" type="date" placeholder="Caducidad">
           <input id="p-lot" placeholder="Lote">
-          <input id="p-img" placeholder="URL de imagen">
+          <!-- SUBIR IMAGEN DESDE DISPOSITIVO -->
+          <input id="p-img-file" type="file" accept="image/*" />
+          <input id="p-img" placeholder="URL de imagen (opcional)">
           <input id="p-desc" placeholder="Descripción">
           <button class="btn" id="p-save">Guardar</button>
           <button class="btn gray" id="p-new">Nuevo</button>
         </div>
       </div>
+
       <div class="card">
-        <div class="row between"><div class="title">Listado</div>
-          <div class="row gap"><input id="p-find" placeholder="Buscar…"><button class="btn" id="p-export">Exportar CSV</button></div>
+        <div class="row between">
+          <div class="title">Listado</div>
+          <div class="row gap">
+            <input id="p-find" placeholder="Buscar SKU, nombre, categoría o lote…">
+            <button class="btn" id="p-export">Exportar CSV</button>
+          </div>
         </div>
+
         <table class="table">
           <thead><tr>
-            <th>Imagen</th><th>SKU</th><th>Nombre</th><th>Categoría</th><th>Precio</th><th>Costo</th>
-            <th>Stock</th><th>Mín</th><th>Caducidad</th><th>Lote</th><th></th>
+            <th>Imagen</th><th>SKU</th><th>Nombre</th><th>Categoría</th>
+            <th>Precio</th><th>Costo</th><th>Stock</th><th>Mín</th>
+            <th>Caducidad</th><th>Lote</th><th></th>
           </tr></thead>
           <tbody id="p-body"><tr><td class="muted" colspan="11">Sin productos</td></tr></tbody>
         </table>
       </div>
     </section>
 
-    <!-- CLIENTES -->
+    <!-- ========== CLIENTES ========== -->
     <section id="view-clientes" class="view">
       <header class="header"><h1>Clientes</h1></header>
       <div class="card">
@@ -153,7 +174,7 @@
       </div>
     </section>
 
-    <!-- HISTORIAL -->
+    <!-- ========== HISTORIAL ========== -->
     <section id="view-historial" class="view">
       <header class="header"><h1>Historial de ventas</h1></header>
       <div class="card">
@@ -169,16 +190,22 @@
       </div>
     </section>
 
-    <!-- REPORTES -->
+    <!-- ========== REPORTES ========== -->
     <section id="view-reportes" class="view">
       <header class="header"><h1>Reportes</h1></header>
       <div class="card">
         <div class="row gap wrap">
           <input type="date" id="r-from"><input type="date" id="r-to">
           <button class="btn" id="r-apply">Aplicar</button>
-          <button class="btn" id="r-export">Exportar CSV</button>
+          <button class="btn" id="r-export-detailed">Exportar CSV Detallado</button>
+          <button class="btn" id="r-export-summary">Exportar CSV Resumen</button>
+          <button class="btn" id="r-backup">Exportar Respaldo</button>
+          <label class="btn filelabel">
+            Importar Respaldo
+            <input id="r-restore" type="file" accept=".json,application/json" hidden />
+          </label>
         </div>
-        <div class="row">
+        <div class="row kpis">
           <div class="card kpi"><div>Ventas</div><h2 id="r-ventas">$0.00</h2></div>
           <div class="card kpi"><div>Ganancia</div><h2 id="r-gan">$0.00</h2></div>
           <div class="card kpi"><div>Tickets</div><h2 id="r-ticks">0</h2></div>
@@ -188,9 +215,10 @@
       </div>
     </section>
 
-    <!-- CONFIGURACIÓN -->
+    <!-- ========== CONFIG ========== -->
     <section id="view-config" class="view">
       <header class="header"><h1>Configuración</h1></header>
+
       <div class="card">
         <div class="title">Apariencia</div>
         <div class="row gap wrap">
@@ -204,11 +232,17 @@
           <button class="btn gray" id="cfg-reset">Restablecer</button>
         </div>
       </div>
+
       <div class="card">
-        <div class="title">Ticket</div>
+        <div class="title">Ticket / Identidad</div>
         <div class="row gap wrap">
           <label>IVA % <input id="cfg-iva" type="number" step="0.01" min="0"></label>
           <input id="cfg-msg" placeholder="Mensaje en ticket">
+          <!-- SUBIR LOGO DESDE DISPOSITIVO -->
+          <label class="btn filelabel">
+            Subir logo
+            <input id="cfg-logo-file" type="file" accept="image/*" hidden />
+          </label>
           <input id="cfg-logo" placeholder="URL logo (opcional)">
           <input id="cfg-name" placeholder="Nombre del negocio">
           <input id="cfg-addr" placeholder="Dirección">
@@ -217,10 +251,14 @@
           <input id="cfg-social" placeholder="Redes (texto)">
           <button class="btn" id="cfg-ticket-save">Guardar ticket</button>
         </div>
+        <div class="row gap wrap">
+          <img id="previewLogoMenu" class="logo-menu" alt="logo menú" />
+          <img id="previewLogoTicket" class="logo-ticket" alt="logo ticket" />
+        </div>
       </div>
     </section>
 
-    <!-- TICKET 58 -->
+    <!-- ========== TICKET 58 ========== -->
     <section id="view-ticket58" class="view">
       <header class="header"><h1>Vista Ticket 58mm</h1></header>
       <div class="card">

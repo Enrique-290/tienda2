@@ -1,34 +1,60 @@
 :root{
   --bg:#f6f7fb; --card:#ffffff; --menu:#0f172a; --pri:#2563eb;
-  --txt:#0b1220; --muted:#6b7280; --bd:#e5e7eb; --ok:#16a34a; --bad:#ef4444;
+  --txt:#0b1220; --muted:#6b7280; --bd:#e5e7eb;
 }
 *{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--txt)}
-.sidebar{position:fixed;inset:0 auto 0 0;width:240px;background:var(--menu);color:#fff;display:flex;flex-direction:column}
-.sidebar .brand{font-weight:800;padding:18px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
-.sidebar nav{padding:8px}
-.sidebar .nav{all:unset;display:block;width:100%;padding:10px 14px;border-radius:10px;margin:4px 0;cursor:pointer}
-.sidebar .nav:hover{background:rgba(255,255,255,.08)}
-.sidebar .nav.active{background:#fff;color:var(--menu);font-weight:700}
-.sidebar .foot{margin-top:auto;padding:12px 14px;color:#cbd5e1;font-size:12px}
-.content{margin-left:240px;padding:18px}
+/* Sidebar fijo con active dentro del contorno */
+.sidebar{position:fixed;inset:0 auto 0 0;width:260px;background:var(--menu);color:#fff;display:flex;flex-direction:column}
+.brand{display:flex;align-items:center;gap:10px;padding:16px;border-bottom:1px solid rgba(255,255,255,.08)}
+.brand img{height:26px;width:auto;object-fit:contain;filter:brightness(1)}
+.navlist{padding:10px}
+.nav{all:unset;display:block;width:100%;padding:10px 14px;border-radius:10px;margin:4px 0;cursor:pointer;white-space:nowrap}
+.nav:hover{background:rgba(255,255,255,.08)}
+.nav.active{background:#fff;color:var(--menu);font-weight:700;box-shadow:inset 0 0 0 2px rgba(0,0,0,.05)}
+.foot{margin-top:auto;padding:10px 14px;color:#cbd5e1;font-size:12px}
+
+.content{margin-left:260px;padding:18px}
 .header{display:flex;align-items:center;justify-content:space-between;margin:6px 0 12px}
 .row{display:flex;gap:10px;align-items:center}
 .between{justify-content:space-between}.gap{gap:10px}.wrap{flex-wrap:wrap}
-.cols{gap:12px}.cols>.card{flex:1}
 .card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px}
 .title{font-weight:700;margin-bottom:8px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
 .kpi h2{margin:6px 0 0}
-.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-.product{border:1px solid var(--bd);border-radius:12px;padding:10px;display:flex;gap:10px}
-.product img{width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--bd)}
+
+.panel2{display:grid;grid-template-columns:1.2fr .9fr;gap:12px}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.product{border:1px solid var(--bd);border-radius:12px;padding:10px;display:grid;grid-template-columns:72px 1fr;gap:10px;align-items:center}
+.product img{width:72px;height:72px;object-fit:cover;border-radius:8px;border:1px solid var(--bd)}
+.product .pname{font-weight:700}
+.product .muted{color:var(--muted)}
 .btn{border:1px solid var(--pri);background:var(--pri);color:#fff;border-radius:10px;padding:9px 12px;cursor:pointer}
 .btn.gray{background:#6b7280;border-color:#6b7280}
-.btn.link{background:transparent;color:var(--pri);border-color:transparent}
+.btn.filelabel{display:inline-flex;align-items:center}
 input,select{border:1px solid var(--bd);border-radius:10px;padding:9px 12px;background:#fff}
+
 .table{width:100%;border-collapse:collapse}
 .table th,.table td{padding:8px;border-bottom:1px solid var(--bd);text-align:left}
 .muted{color:var(--muted)}
 .view{display:none}.view.active{display:block}
+
+.cartcard{max-height:720px}
+.cartwrap{max-height:380px;overflow:auto;border:1px dashed var(--bd);border-radius:10px;padding:6px}
+
 .ticket58{width:270px;white-space:pre-wrap;border:1px dashed var(--bd);padding:10px;background:#fff;border-radius:10px}
-@media (max-width:1100px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:800px){.grid{grid-template-columns:1fr}.content{margin-left:0}.sidebar{position:static;width:auto;flex-direction:row}}
+
+.logo-menu{height:28px;object-fit:contain;background:#fff;border:1px solid var(--bd);border-radius:8px;padding:4px}
+.logo-ticket{height:60px;object-fit:contain;background:#fff;border:1px solid var(--bd);border-radius:8px;padding:4px}
+
+/* RESPONSIVE */
+@media (max-width:1200px){
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .panel2{grid-template-columns:1fr}
+}
+@media (max-width:800px){
+  .grid{grid-template-columns:1fr}
+  .content{margin-left:0}
+  .sidebar{position:static;width:auto;flex-direction:row}
+  .navlist{display:flex;overflow:auto}
+  .nav{flex:0 0 auto}
+}

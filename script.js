@@ -1,6 +1,7 @@
-/* ====== Estado / almacenamiento ====== */
+/* ====== helpers/estado ====== */
 const $ = s=>document.querySelector(s);
 const fmt = n => Number(n||0).toLocaleString('es-MX',{style:'currency',currency:'MXN'});
+const getCSS = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 
 let settings = JSON.parse(localStorage.getItem('na_settings')||'null') || {
   theme:{bg:getCSS('--bg'),card:getCSS('--card'),menu:getCSS('--menu'),pri:getCSS('--pri'),txt:getCSS('--txt'),muted:getCSS('--muted')},
@@ -9,11 +10,16 @@ let settings = JSON.parse(localStorage.getItem('na_settings')||'null') || {
 let inventory = JSON.parse(localStorage.getItem('na_inventory')||'[]');
 let clients   = JSON.parse(localStorage.getItem('na_clients')||'[]');
 let sales     = JSON.parse(localStorage.getItem('na_sales')||'[]');
-let cart = JSON.parse(localStorage.getItem('na_cart')||'[]');
-let editingProduct = null, editingClient = null;
+let cart      = JSON.parse(localStorage.getItem('na_cart')||'[]');
+let editingProduct = null, editingClient=null;
 
-/* ====== Utils ====== */
-function getCSS(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+function saveAll(){
+  localStorage.setItem('na_settings',JSON.stringify(settings));
+  localStorage.setItem('na_inventory',JSON.stringify(inventory));
+  localStorage.setItem('na_clients',JSON.stringify(clients));
+  localStorage.setItem('na_sales',JSON.stringify(sales));
+  localStorage.setItem('na_cart',JSON.stringify(cart));
+}
 function setTheme(t){
   document.documentElement.style.setProperty('--bg',t.bg);
   document.documentElement.style.setProperty('--card',t.card);
@@ -22,110 +28,96 @@ function setTheme(t){
   document.documentElement.style.setProperty('--txt',t.txt);
   document.documentElement.style.setProperty('--muted',t.muted);
 }
-function saveAll(){
-  localStorage.setItem('na_inventory',JSON.stringify(inventory));
-  localStorage.setItem('na_clients',JSON.stringify(clients));
-  localStorage.setItem('na_sales',JSON.stringify(sales));
-  localStorage.setItem('na_cart',JSON.stringify(cart));
-  localStorage.setItem('na_settings',JSON.stringify(settings));
-}
 function csvDownload(rows, name){
-  const csv = rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const csv = rows.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\n');
   const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
   a.download=name; a.click();
 }
+function todayStr(d=new Date()){return d.toISOString().slice(0,10);}
 
-/* ====== Navegación ====== */
-document.querySelectorAll('.nav').forEach(btn=>{
-  btn.onclick=()=>{ document.querySelectorAll('.nav').forEach(b=>b.classList.remove('active')); btn.classList.add('active');
+/* ====== navegación ====== */
+document.querySelectorAll('.nav').forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll('.nav').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
     document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-    $('#view-'+btn.dataset.view).classList.add('active');
-    if(btn.dataset.view==='dashboard') renderDashboard();
-    if(btn.dataset.view==='ventas')    renderVentas();
-    if(btn.dataset.view==='inventario')renderInventario();
-    if(btn.dataset.view==='clientes')  renderClientes();
-    if(btn.dataset.view==='historial') renderHistorial();
-    if(btn.dataset.view==='reportes')  renderReportes();
-    if(btn.dataset.view==='ticket58')  renderTicketPreview();
+    $('#view-'+b.dataset.view).classList.add('active');
+    if(b.dataset.view==='dashboard') renderDashboard();
+    if(b.dataset.view==='ventas')    renderVentas();
+    if(b.dataset.view==='inventario')renderInventario();
+    if(b.dataset.view==='clientes')  renderClientes();
+    if(b.dataset.view==='historial') renderHistorial();
+    if(b.dataset.view==='reportes')  renderReportes();
+    if(b.dataset.view==='config')    loadConfigUI();
+    if(b.dataset.view==='ticket58')  renderTicketPreview();
   };
 });
 
-/* ====== Dashboard ====== */
-function todayStr(d=new Date()){return d.toISOString().slice(0,10);}
+/* ====== DASHBOARD ====== */
 function renderDashboard(){
-  // KPIs
   const today = todayStr();
   const todaySales = sales.filter(s=>s.date.slice(0,10)===today);
   const total = todaySales.reduce((a,s)=>a+s.totals.tot,0);
-  const gan = todaySales.reduce((a,s)=>a + s.items.reduce((x,i)=>x + (i.price - (i.cost||0))*i.qty,0),0);
-  $('#kpi-ventas').textContent = fmt(total);
-  $('#kpi-tickets').textContent= todaySales.length;
-  $('#kpi-stock').textContent  = inventory.reduce((a,p)=>a+p.stock,0);
+  const gan = todaySales.reduce((a,s)=>a+s.items.reduce((x,i)=>x + (i.price-(i.cost||0))*i.qty,0),0);
+  $('#kpi-ventas').textContent=fmt(total);
+  $('#kpi-tickets').textContent=todaySales.length;
+  $('#kpi-stock').textContent=inventory.reduce((a,p)=>a+p.stock,0);
   $('#kpi-ganancia').textContent=fmt(gan);
 
-  // Fechas por defecto (últimos 7 días)
-  const to = new Date(); const from = new Date(); from.setDate(to.getDate()-6);
-  $('#dash-from').value = todayStr(from); $('#dash-to').value = todayStr(to);
+  const to=new Date(); const from=new Date(); from.setDate(to.getDate()-6);
+  $('#dash-from').value=todayStr(from); $('#dash-to').value=todayStr(to);
   drawChart('#chart', aggregateByDay(from,to));
 }
-$('#dash-apply')?.addEventListener('click',()=>{
-  const from=new Date($('#dash-from').value), to=new Date($('#dash-to').value);
-  drawChart('#chart', aggregateByDay(from,to));
-});
+$('#dash-apply').onclick=()=>{ drawChart('#chart', aggregateByDay(new Date($('#dash-from').value), new Date($('#dash-to').value))); };
 function aggregateByDay(from,to){
-  const map={}; const d=new Date(from);
-  while(d<=to){ map[todayStr(d)]=0; d.setDate(d.getDate()+1); }
+  const map={}; const d=new Date(from); while(d<=to){ map[todayStr(d)]=0; d.setDate(d.getDate()+1); }
   sales.forEach(s=>{const k=s.date.slice(0,10); if(map[k]!=null) map[k]+=s.totals.tot;});
   return Object.entries(map);
 }
-function drawChart(sel, data){
-  const c=$(sel); const ctx=c.getContext('2d'); const W=c.width=c.clientWidth; const H=c.height;
-  ctx.clearRect(0,0,W,H);
-  const max=Math.max(...data.map(d=>d[1]),1), pad=24, bar=(W-pad*2)/data.length-6; let x=pad;
+function drawChart(sel,data){
+  const c=$(sel), ctx=c.getContext('2d'); const W=c.width=c.clientWidth, H=c.height; ctx.clearRect(0,0,W,H);
+  const max=Math.max(...data.map(x=>x[1]),1), pad=24, bw=(W-pad*2)/data.length-6; let x=pad;
   ctx.strokeStyle='#ccc'; ctx.beginPath(); ctx.moveTo(pad,H-pad); ctx.lineTo(W-pad,H-pad); ctx.stroke();
-  data.forEach(([label,val])=>{
-    const h=(H-pad*2)*(val/max); ctx.fillStyle=getCSS('--pri'); ctx.fillRect(x,H-pad-h,bar,h);
-    ctx.fillStyle='#555'; ctx.font='11px system-ui'; ctx.fillText(label.slice(5), x, H-6);
-    x+=bar+6;
-  });
+  data.forEach(([lab,val])=>{ const h=(H-pad*2)*(val/max); ctx.fillStyle=getCSS('--pri'); ctx.fillRect(x,H-pad-h,bw,h); ctx.fillStyle='#555'; ctx.font='11px system-ui'; ctx.fillText(lab.slice(5),x,H-6); x+=bw+6;});
 }
 
-/* ====== Ventas ====== */
+/* ====== VENTAS ====== */
 function renderVentas(){
   // categorías
   const cats=[...new Set(inventory.map(p=>p.cat).filter(Boolean))]; $('#v-cat').innerHTML='<option value="">Todas</option>'+cats.map(c=>`<option>${c}</option>`).join('');
-  // clientes
+  // clientes lista
   $('#v-customers').innerHTML=clients.map(c=>`<option value="${c.name}">`).join('');
-  // grid
-  const grid = $('#v-grid'); grid.innerHTML='';
-  const term=($('#v-search').value||'').toLowerCase(); const cat=$('#v-cat').value; const min=parseFloat($('#v-min').value||0); const max=parseFloat($('#v-max').value||1e12);
+  // grid productos
+  const term=($('#v-search').value||'').toLowerCase(); const cat=$('#v-cat').value;
+  const min=parseFloat($('#v-min').value||0); const max=parseFloat($('#v-max').value||1e12);
+  const grid=$('#v-grid'); grid.innerHTML='';
   inventory.filter(p=>{
     const t=(p.name+' '+p.sku+' '+p.cat+' '+(p.lot||'')+' '+(p.desc||'')).toLowerCase();
     return (!cat||p.cat===cat) && t.includes(term) && p.price>=min && p.price<=max;
   }).forEach(p=>{
-    const el=document.createElement('div'); el.className='product';
-    el.innerHTML=`
-      <img src="${p.img||'https://placekitten.com/80/80'}" alt="">
-      <div style="flex:1">
-        <div><b>${p.name}</b></div>
+    const card=document.createElement('div'); card.className='product';
+    card.innerHTML=`
+      <img src="${p.img||'https://placehold.co/80x80?text=IMG'}" alt="">
+      <div>
+        <div class="pname">${p.name}</div>
         <div class="muted">SKU ${p.sku||'-'} · ${p.cat||'-'} · Stock ${p.stock}</div>
         <div class="row between">
           <div><b>${fmt(p.price)}</b></div>
           <div class="row gap">
-            <input type="number" min="1" value="1" style="width:70px">
+            <input type="number" min="1" value="1" style="width:72px">
             <button class="btn add">Agregar</button>
           </div>
         </div>
       </div>`;
-    el.querySelector('.add').onclick=()=>{
-      const qty=parseInt(el.querySelector('input').value||1,10);
+    card.querySelector('.add').onclick=()=>{
+      const qty=parseInt(card.querySelector('input').value||1,10);
       if(qty>p.stock){alert('Sin stock suficiente');return;}
-      const found=cart.find(i=>i.id===p.id);
-      if(found){ if(found.qty+qty>p.stock){alert('Sin stock suficiente');return;} found.qty+=qty; }
+      const f=cart.find(i=>i.id===p.id);
+      if(f){ if(f.qty+qty>p.stock){alert('Sin stock suficiente');return;} f.qty+=qty; }
       else cart.push({id:p.id,name:p.name,sku:p.sku,price:p.price,cost:p.cost,qty});
       saveAll(); renderCart();
     };
-    grid.appendChild(el);
+    grid.appendChild(card);
   });
   renderCart();
 }
@@ -133,19 +125,17 @@ function renderCart(){
   const tb=$('#v-cart'); tb.innerHTML='';
   if(!cart.length){tb.innerHTML='<tr><td colspan="7" class="muted">Sin productos</td></tr>';}
   cart.forEach(it=>{
-    const prod=inventory.find(p=>p.id===it.id)||{stock:0};
+    const p=inventory.find(x=>x.id===it.id)||{stock:0};
     const tr=document.createElement('tr');
     tr.innerHTML=`
-      <td>${it.name}</td><td>${it.sku||'-'}</td>
-      <td>${prod.stock}</td>
+      <td>${it.name}</td><td>${it.sku||'-'}</td><td>${p.stock}</td>
       <td><input type="number" min="1" value="${it.qty}" style="width:70px"></td>
-      <td>${fmt(it.price)}</td>
-      <td>${fmt(it.price*it.qty)}</td>
+      <td>${fmt(it.price)}</td><td>${fmt(it.price*it.qty)}</td>
       <td><button class="btn gray rem">X</button></td>`;
     tr.querySelector('input').onchange=e=>{
-      let q=parseInt(e.target.value||1,10); if(q>prod.stock) q=prod.stock; it.qty=q; saveAll(); renderTotals();
+      let q=parseInt(e.target.value||1,10); if(q>p.stock) q=p.stock; it.qty=q; saveAll(); renderTotals();
     };
-    tr.querySelector('.rem').onclick=()=>{cart=cart.filter(x=>x!==it); saveAll(); renderCart();}
+    tr.querySelector('.rem').onclick=()=>{ cart=cart.filter(x=>x!==it); saveAll(); renderCart(); };
     tb.appendChild(tr);
   });
   renderTotals();
@@ -158,7 +148,7 @@ function totals(){
   const iva = base*(Number(settings.ticket.iva)/100);
   const tot = base+iva;
   const cash=parseFloat($('#v-cash').value||0);
-  const change=Math.max(0, cash - tot);
+  const change = $('#v-pay').value==='Efectivo' ? Math.max(0,cash-tot) : 0;
   return {sub,disc,base,iva,tot,change};
 }
 function renderTotals(){
@@ -175,28 +165,28 @@ $('#v-clear').onclick=()=>{$('#v-search').value='';$('#v-cat').value='';$('#v-mi
 $('#v-clear-cart').onclick=()=>{cart=[];saveAll();renderCart();};
 $('#v-checkout').onclick=()=>{
   if(!cart.length) return;
-  const pay=$('#v-pay').value; const customer=($('#v-customer').value||'Público General').trim(); const t=totals();
+  const pay=$('#v-pay').value; const t=totals();
   if(pay==='Efectivo' && parseFloat($('#v-cash').value||0)<t.tot){alert('Efectivo insuficiente');return;}
+  const customer=($('#v-customer').value||'Público General').trim();
   // descuenta stock
   cart.forEach(i=>{const p=inventory.find(x=>x.id===i.id); if(p) p.stock-=i.qty;});
-  // actualiza cliente
+  // cliente
   const cli=clients.find(c=>c.name.toLowerCase()===customer.toLowerCase());
   if(cli){ cli.visits=(cli.visits||0)+1; cli.lastPurchase=new Date().toISOString(); }
-  // guarda venta
+  // venta
   const recId='T'+Date.now().toString().slice(-8);
   const sale={id:recId,date:new Date().toISOString(),customer,pay,items:cart.map(i=>({...i})),totals:t};
-  sales.push(sale);
-  // ticket
+  sales.push(sale); saveAll();
   printTicket(sale);
-  // limpia
-  cart=[]; saveAll(); renderVentas(); renderDashboard();
+  // RESET A ESTADO POR DEFECTO
+  cart=[]; saveAll(); renderCart();
+  $('#v-customer').value=''; $('#v-pay').value='Efectivo'; $('#v-cash').value=''; $('#v-discount').value=''; $('#v-discount-type').value='amount';
+  renderDashboard(); renderVentas();
 };
 
-/* ====== Inventario (CRUD) ====== */
+/* ====== INVENTARIO (CRUD + subir imagen + agregar stock) ====== */
 function renderInventario(){
-  // datalist categorías
   const cats=[...new Set(inventory.map(p=>p.cat).filter(Boolean))]; $('#p-cats').innerHTML=cats.map(c=>`<option value="${c}">`).join('');
-  // tabla
   const term=($('#p-find').value||'').toLowerCase();
   const tb=$('#p-body'); tb.innerHTML='';
   const list=inventory.filter(p=>(p.name+' '+p.sku+' '+p.cat+' '+(p.lot||'')).toLowerCase().includes(term));
@@ -208,39 +198,46 @@ function renderInventario(){
       <td>${p.sku||''}</td><td>${p.name}</td><td>${p.cat||''}</td>
       <td>${fmt(p.price)}</td><td>${fmt(p.cost||0)}</td><td>${p.stock}</td><td>${p.min||0}</td>
       <td>${p.exp||'-'}</td><td>${p.lot||'-'}</td>
-      <td>
+      <td class="row gap">
         <button class="btn link e">Editar</button>
-        <button class="btn gray d" style="background:var(--bad);border-color:var(--bad)">Borrar</button>
+        <button class="btn gray s">+ Agregar stock</button>
+        <button class="btn gray d" style="background:#ef4444;border-color:#ef4444">Borrar</button>
       </td>`;
     tr.querySelector('.e').onclick=()=>loadProductForm(p.id);
-    tr.querySelector('.d').onclick=()=>{ if(confirm('¿Borrar producto?')){ inventory=inventory.filter(x=>x.id!==p.id); saveAll(); renderInventario(); }};
+    tr.querySelector('.d').onclick=()=>{ if(confirm('¿Borrar producto?')){ inventory=inventory.filter(x=>x.id!==p.id); saveAll(); renderInventario(); renderVentas(); } };
+    tr.querySelector('.s').onclick=()=>{
+      const qty=Number(prompt('Cantidad a sumar:', '1'));
+      if(!qty || qty<=0) return;
+      const lote=prompt('Lote (opcional)', p.lot||'')||p.lot;
+      const cad=prompt('Caducidad (YYYY-MM-DD opcional)', p.exp||'')||p.exp;
+      p.stock += qty; if(lote) p.lot=lote; if(cad) p.exp=cad; saveAll(); renderInventario(); renderDashboard();
+    };
     tb.appendChild(tr);
   });
 }
 function readProductForm(){
-  const cat = $('#p-new-cat').value.trim() || $('#p-cat').value.trim();
+  const cat=$('#p-new-cat').value.trim() || $('#p-cat').value.trim();
   return {
     id: editingProduct || Date.now(),
     sku:$('#p-sku').value.trim(), name:$('#p-name').value.trim(), cat,
     price:parseFloat($('#p-price').value||0), cost:parseFloat($('#p-cost').value||0),
     stock:parseInt($('#p-stock').value||0,10), min:parseInt($('#p-min').value||0,10),
-    exp:$('#p-exp').value||'', lot:$('#p-lot').value.trim(), img:$('#p-img').value.trim(), desc:$('#p-desc').value.trim()
+    exp:$('#p-exp').value||'', lot:$('#p-lot').value.trim(),
+    img:$('#p-img').value.trim(), desc:$('#p-desc').value.trim()
   };
 }
 function loadProductForm(id){
-  const p=inventory.find(x=>x.id===id); if(!p) return;
-  editingProduct=id;
+  const p=inventory.find(x=>x.id===id); if(!p) return; editingProduct=id;
   $('#p-sku').value=p.sku||''; $('#p-name').value=p.name||''; $('#p-cat').value=p.cat||''; $('#p-new-cat').value='';
   $('#p-price').value=p.price; $('#p-cost').value=p.cost||0; $('#p-stock').value=p.stock; $('#p-min').value=p.min||0;
   $('#p-exp').value=p.exp||''; $('#p-lot').value=p.lot||''; $('#p-img').value=p.img||''; $('#p-desc').value=p.desc||'';
 }
 $('#p-save').onclick=()=>{
   const p=readProductForm(); if(!p.name){alert('Nombre requerido');return;}
-  const i=inventory.findIndex(x=>x.id===p.id);
-  if(i>=0) inventory[i]=p; else inventory.push(p);
+  const i=inventory.findIndex(x=>x.id===p.id); if(i>=0) inventory[i]=p; else inventory.push(p);
   editingProduct=null; clearProdForm(); saveAll(); renderInventario(); renderVentas(); renderDashboard();
 };
-$('#p-new').onclick=()=>{editingProduct=null;clearProdForm();};
+$('#p-new').onclick=()=>{editingProduct=null; clearProdForm();};
 function clearProdForm(){ ['p-sku','p-name','p-cat','p-new-cat','p-price','p-cost','p-stock','p-min','p-exp','p-lot','p-img','p-desc'].forEach(id=>$('#'+id).value=''); }
 $('#p-find').addEventListener('input', renderInventario);
 $('#p-export').onclick=()=>{
@@ -248,25 +245,29 @@ $('#p-export').onclick=()=>{
   inventory.forEach(p=>rows.push([p.sku,p.name,p.cat,p.price,p.cost,p.stock,p.min,p.exp,p.lot,p.desc,p.img]));
   csvDownload(rows,'inventario.csv');
 };
+/* Cargar imagen de producto desde dispositivo (convierte a base64 y la pone en p-img) */
+$('#p-img-file').addEventListener('change', async (e)=>{
+  const file=e.target.files?.[0]; if(!file) return;
+  const data = await fileToDataURL(file, 512, 512); // redimensiona
+  $('#p-img').value=data; // guardamos base64 en el campo
+});
 
-/* ====== Clientes ====== */
+/* ====== CLIENTES ====== */
 function renderClientes(){
   const term=($('#c-find').value||'').toLowerCase();
   const tb=$('#c-body'); tb.innerHTML='';
   const list=clients.filter(c=>(c.name+' '+(c.phone||'')+' '+(c.email||'')).toLowerCase().includes(term));
   if(!list.length){tb.innerHTML='<tr><td colspan="6" class="muted">Sin clientes</td></tr>';return;}
-  tb.innerHTML='';
   list.forEach(c=>{
     const tr=document.createElement('tr');
     tr.innerHTML=`
       <td>${c.name}</td><td>${c.phone||''}</td><td>${c.email||''}</td>
       <td>${c.visits||0}</td><td>${c.lastPurchase?new Date(c.lastPurchase).toLocaleString('es-MX'):'-'}</td>
-      <td><button class="btn link e">Editar</button><button class="btn gray d" style="background:var(--bad);border-color:var(--bad)">Borrar</button></td>`;
+      <td><button class="btn link e">Editar</button><button class="btn gray d" style="background:#ef4444;border-color:#ef4444">Borrar</button></td>`;
     tr.querySelector('.e').onclick=()=>{editingClient=c.id; $('#c-name').value=c.name; $('#c-phone').value=c.phone||''; $('#c-email').value=c.email||''; $('#c-notes').value=c.notes||'';};
     tr.querySelector('.d').onclick=()=>{ if(confirm('¿Eliminar cliente?')){ clients=clients.filter(x=>x.id!==c.id); saveAll(); renderClientes(); }};
     tb.appendChild(tr);
   });
-  // datalist ventas
   $('#v-customers').innerHTML=clients.map(c=>`<option value="${c.name}">`).join('');
 }
 $('#c-save').onclick=()=>{
@@ -283,7 +284,7 @@ $('#c-export').onclick=()=>{
   csvDownload(rows,'clientes.csv');
 };
 
-/* ====== Historial ====== */
+/* ====== HISTORIAL ====== */
 function renderHistorial(){
   const tb=$('#h-body'); tb.innerHTML='';
   const f=$('#h-from').value, t=$('#h-to').value, term=($('#h-find').value||'').toLowerCase();
@@ -298,27 +299,25 @@ function renderHistorial(){
     tr.innerHTML=`<td>${new Date(s.date).toLocaleString('es-MX')}</td><td>${s.customer}</td><td>${s.pay}</td><td>${fmt(s.totals.tot)}</td>
       <td class="row gap">
         <button class="btn link r">Reimprimir</button>
-        <button class="btn gray c" style="background:var(--bad);border-color:var(--bad)">Cancelar</button>
+        <button class="btn gray c" style="background:#ef4444;border-color:#ef4444">Cancelar</button>
       </td>`;
     tr.querySelector('.r').onclick=()=>printTicket(s);
     tr.querySelector('.c').onclick=()=>{
       if(!confirm('¿Cancelar venta y regresar stock?')) return;
-      // regresar stock
       s.items.forEach(i=>{ const p=inventory.find(x=>x.id===i.id); if(p) p.stock+=i.qty; });
-      // eliminar venta
       sales=sales.filter(x=>x!==s); saveAll(); renderHistorial(); renderVentas(); renderDashboard();
     };
     tb.appendChild(tr);
   });
 }
-['h-from','h-to','h-find'].forEach(id=>$('#'+id)?.addEventListener('input',renderHistorial));
+['h-from','h-to','h-find'].forEach(id=>$('#'+id).addEventListener('input',renderHistorial));
 $('#h-export').onclick=()=>{
   const rows=[['Fecha','Ticket','Cliente','Pago','Producto','Cant','Precio','Subtotal','Total']];
   sales.forEach(s=>s.items.forEach(i=>rows.push([s.date,s.id,s.customer,s.pay,i.name,i.qty,i.price,(i.qty*i.price).toFixed(2),s.totals.tot.toFixed(2)])));
   csvDownload(rows,'ventas.csv');
 };
 
-/* ====== Reportes ====== */
+/* ====== REPORTES (detallado + resumen + respaldo) ====== */
 function renderReportes(){
   const to=new Date(); const from=new Date(); from.setDate(to.getDate()-6);
   $('#r-from').value=todayStr(from); $('#r-to').value=todayStr(to);
@@ -330,23 +329,55 @@ function applyReport(){
   const list=sales.filter(inRange);
   const ventas=list.reduce((a,s)=>a+s.totals.tot,0);
   const gan=list.reduce((a,s)=>a+s.items.reduce((x,i)=>x+((i.price-(i.cost||0))*i.qty),0),0);
-  $('#r-ventas').textContent=fmt(ventas);
-  $('#r-gan').textContent=fmt(gan);
-  $('#r-ticks').textContent=list.length;
-  // top
+  $('#r-ventas').textContent=fmt(ventas); $('#r-gan').textContent=fmt(gan); $('#r-ticks').textContent=list.length;
   const count={}; list.forEach(s=>s.items.forEach(i=>count[i.name]=(count[i.name]||0)+i.qty));
   const top=Object.entries(count).sort((a,b)=>b[1]-a[1])[0]; $('#r-top').textContent=top?`${top[0]} (${top[1]})`:'—';
   drawChart('#report-chart', aggregateByDay(from,to));
 }
 $('#r-apply').onclick=applyReport;
-$('#r-export').onclick=()=>{
-  const from=$('#r-from').value, to=$('#r-to').value;
-  const rows=[['Rango',`${from} a ${to}`],[],['Fecha','Total']];
-  aggregateByDay(new Date(from), new Date(to)).forEach(([d,v])=>rows.push([d,v]));
-  csvDownload(rows,'reporte_rangos.csv');
-};
 
-/* ====== Configuración ====== */
+$('#r-export-detailed').onclick=()=>{
+  const from=new Date($('#r-from').value), to=new Date($('#r-to').value);
+  const inRange = s => new Date(s.date)>=from && new Date(s.date)<=new Date(to.toISOString().slice(0,10)+'T23:59:59');
+  const list=sales.filter(inRange);
+  const rows=[['Fecha','Ticket','Cliente','Pago','SKU','Producto','Categoría','Cantidad','PrecioUnit','SubtotalLinea','CostoUnit','UtilidadLinea','DescuentoVenta','IVA','TotalTicket']];
+  list.forEach(s=>{
+    s.items.forEach(i=>{
+      const prod=inventory.find(p=>p.id===i.id)||{};
+      const sub=i.qty*i.price; const util=(i.price-(i.cost||0))*i.qty;
+      rows.push([s.date,s.id,s.customer,s.pay,i.sku||prod.sku||'',i.name,prod.cat||'',i.qty,i.price,sub,(i.cost||0),util,s.totals.disc||0,s.totals.iva||0,s.totals.tot||0]);
+    });
+  });
+  csvDownload(rows,'reporte_detallado.csv');
+};
+$('#r-export-summary').onclick=()=>{
+  const from=new Date($('#r-from').value), to=new Date($('#r-to').value);
+  const inRange = s => new Date(s.date)>=from && new Date(s.date)<=new Date(to.toISOString().slice(0,10)+'T23:59:59');
+  const list=sales.filter(inRange);
+  const rows=[['Fecha','Ticket','Cliente','Pago','Items','Base','IVA','Total']];
+  list.forEach(s=>rows.push([s.date,s.id,s.customer,s.pay,s.items.reduce((a,i)=>a+i.qty,0),(s.totals?.base||0),(s.totals?.iva||0),s.totals.tot]));
+  csvDownload(rows,'reporte_resumen.csv');
+};
+/* Respaldo (export/import) */
+$('#r-backup').onclick=()=>{
+  const data={settings, inventory, clients, sales, version:'petpos-v2'};
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
+  a.download='petpos_backup.json'; a.click();
+};
+$('#r-restore').addEventListener('change', async e=>{
+  const file=e.target.files?.[0]; if(!file) return;
+  const txt=await file.text(); const data=JSON.parse(txt);
+  if(!data || !data.inventory || !data.sales){ alert('Respaldo inválido'); return; }
+  if(confirm('¿Reemplazar TODO el contenido con el respaldo?')) {
+    settings=data.settings||settings; inventory=data.inventory||[]; clients=data.clients||[]; sales=data.sales||[];
+    saveAll(); alert('Respaldo importado'); renderDashboard(); renderVentas(); renderInventario(); renderClientes(); renderHistorial(); renderReportes(); loadConfigUI();
+  }
+});
+
+/* ====== CONFIG ====== */
+function rgbToHex(c){const ctx=document.createElement('canvas').getContext('2d');ctx.fillStyle=c;return rgbToHex2(ctx.fillStyle);}
+function rgbToHex2(rgb){const m=/rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(rgb); if(!m) return rgb; return '#'+[m[1],m[2],m[3]].map(x=>('0'+parseInt(x).toString(16)).slice(-2)).join('');}
 function loadConfigUI(){
   $('#cfg-bg').value=rgbToHex(settings.theme.bg);
   $('#cfg-card').value=rgbToHex(settings.theme.card);
@@ -362,9 +393,13 @@ function loadConfigUI(){
   $('#cfg-phone').value=settings.ticket.phone;
   $('#cfg-email').value=settings.ticket.email;
   $('#cfg-social').value=settings.ticket.social;
+  // previews y brand
+  const brand = settings.ticket.logo || '';
+  $('#previewLogoMenu').src = brand || '';
+  $('#previewLogoTicket').src = brand || '';
+  $('#brandLogo').src = brand || '';
+  $('#brandName').textContent = settings.ticket.name || 'PetPOS';
 }
-function rgbToHex(c){const ctx=document.createElement('canvas').getContext('2d');ctx.fillStyle=c;return rgbToHex2(ctx.fillStyle);}
-function rgbToHex2(rgb){const m=/rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(rgb); if(!m) return rgb; return '#'+[m[1],m[2],m[3]].map(x=>('0'+parseInt(x).toString(16)).slice(-2)).join('');}
 $('#cfg-save').onclick=()=>{
   settings.theme={bg:$('#cfg-bg').value,card:$('#cfg-card').value,menu:$('#cfg-menu').value,pri:$('#cfg-pri').value,txt:$('#cfg-txt').value,muted:$('#cfg-muted').value};
   setTheme(settings.theme); saveAll();
@@ -372,14 +407,20 @@ $('#cfg-save').onclick=()=>{
 $('#cfg-reset').onclick=()=>{settings.theme={bg:'#f6f7fb',card:'#ffffff',menu:'#0f172a',pri:'#2563eb',txt:'#0b1220',muted:'#6b7280'}; setTheme(settings.theme); saveAll(); loadConfigUI();};
 $('#cfg-ticket-save').onclick=()=>{
   settings.ticket={iva:Number($('#cfg-iva').value||16),msg:$('#cfg-msg').value,logo:$('#cfg-logo').value,name:$('#cfg-name').value,addr:$('#cfg-addr').value,phone:$('#cfg-phone').value,email:$('#cfg-email').value,social:$('#cfg-social').value};
-  saveAll(); renderTicketPreview();
+  saveAll(); loadConfigUI(); renderTicketPreview();
 };
+/* subir logo desde dispositivo → redimensiona (menú y ticket) y guarda base64 */
+$('#cfg-logo-file').addEventListener('change', async e=>{
+  const file=e.target.files?.[0]; if(!file) return;
+  const base = await fileToDataURL(file, 512, 512); // base grande
+  settings.ticket.logo = base; saveAll(); loadConfigUI(); renderTicketPreview();
+});
 
 /* ====== Ticket ====== */
 function ticketText(sale){
   const t=settings.ticket;
   const lines=sale.items.map(i=>`${i.qty} x ${i.name} (${i.sku||'-'}) @ ${fmt(i.price)} = ${fmt(i.price*i.qty)}`).join('\n');
-  return `${t.logo?'' : ''}${t.name}
+  return `${t.name}
 ${t.addr}
 Tel: ${t.phone}  ${t.email}
 ${t.social}
@@ -398,7 +439,6 @@ Cambio:    ${fmt(sale.totals.change)}
 ${t.msg}`;
 }
 function renderTicketPreview(){
-  // si no hay venta reciente, armar previsualización con ejemplo
   const s = sales[sales.length-1] || {id:'DEMO',date:new Date().toISOString(),customer:'Público General',pay:'Efectivo',items:[{name:'Croqueta',sku:'SKU1',price:100,qty:1}],totals:{base:100,iva:16,tot:116,change:0}};
   $('#ticket-preview').textContent = ticketText(s);
 }
@@ -406,12 +446,26 @@ function printTicket(sale){
   renderTicketPreview();
   const txt=ticketText(sale);
   const w=window.open('','_blank','width=360,height=600');
-  w.document.write(`<pre style="font:14px/1.25 ui-monospace,monospace;margin:10px;white-space:pre-wrap">${txt}</pre><script>window.print()</script>`);
+  const logo = settings.ticket.logo ? `<img src="${settings.ticket.logo}" style="max-width:220px;height:auto;object-fit:contain" />` : '';
+  w.document.write(`<div style="font:14px/1.25 ui-monospace,monospace;margin:10px;white-space:pre-wrap">
+    ${logo?logo+'<br/>':''}<pre>${txt}</pre></div><script>window.print()</script>`);
   w.document.close();
 }
 $('#t-print').onclick=()=>{ const s=sales[sales.length-1]; if(s) printTicket(s); };
 
-/* ====== Init ====== */
+/* ====== utils: imagen a dataURL con resize ====== */
+async function fileToDataURL(file, maxW=512, maxH=512){
+  const img = new Image(); const url = URL.createObjectURL(file);
+  await new Promise(res=>{ img.onload=()=>res(); img.src=url; });
+  const w=img.width, h=img.height; let nw=w, nh=h;
+  const r=Math.min(maxW/w, maxH/h, 1); nw=Math.round(w*r); nh=Math.round(h*r);
+  const c=document.createElement('canvas'); c.width=nw; c.height=nh;
+  const ctx=c.getContext('2d'); ctx.drawImage(img,0,0,nw,nh);
+  URL.revokeObjectURL(url);
+  return c.toDataURL('image/webp', 0.85);
+}
+
+/* ====== init/seed ====== */
 function seedIfEmpty(){
   if(!inventory.length){
     inventory = [
@@ -420,17 +474,12 @@ function seedIfEmpty(){
       {id:3, sku:'ACC-010', name:'Juguete Pelota Reforzada', cat:'Accesorios', price:89, cost:35, stock:15, min:5, exp:'', lot:'', img:'', desc:''}
     ];
   }
-  if(!clients.length){
-    clients=[{id:1,name:'Público General',visits:0}];
-  }
+  if(!clients.length){ clients=[{id:1,name:'Público General',visits:0}]; }
   saveAll();
 }
 function boot(){
   seedIfEmpty(); setTheme(settings.theme); loadConfigUI();
-  // activar dashboard por defecto
   document.querySelector('.nav[data-view="dashboard"]').click();
-  // listeners globales
   ['v-discount','v-discount-type','v-cash'].forEach(id=>$('#'+id).addEventListener('input',renderTotals));
-  $('#r-from')?.addEventListener('change',()=>{}); // placeholder
 }
 boot();
