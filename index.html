@@ -1,173 +1,215 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="petpos">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>PetPOS Demo++</title>
+  <title>PetPOS Demo</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
-  <aside class="sidebar" id="sidebar">
-    <div class="brand">
-      <img id="brandLogo" alt="logo" />
-      <span id="brandName">PetPOS</span>
+<body class="petpos-body">
+  <aside class="petpos-sidebar" id="sidebar">
+    <div class="petpos-brand">
+      <img id="brandLogo" class="brand-logo" alt="logo" />
+      <span>PetPOS</span>
     </div>
 
-    <nav class="nav">
-      <button data-view="dashboard" class="nav-item">
-        <span class="emoji" data-emoji="🏠"></span><span class="label">Dashboard</span>
-      </button>
-      <button data-view="ventas" class="nav-item active">
-        <span class="emoji" data-emoji="🛒"></span><span class="label">Ventas</span>
-      </button>
-      <button data-view="inventario" class="nav-item">
-        <span class="emoji" data-emoji="📦"></span><span class="label">Inventario</span>
-      </button>
-      <button data-view="clientes" class="nav-item">
-        <span class="emoji" data-emoji="👥"></span><span class="label">Clientes</span>
-      </button>
-      <button data-view="historial" class="nav-item">
-        <span class="emoji" data-emoji="📜"></span><span class="label">Historial</span>
-      </button>
-      <button data-view="reportes" class="nav-item">
-        <span class="emoji" data-emoji="📈"></span><span class="label">Reportes</span>
-      </button>
-      <button data-view="config" class="nav-item">
-        <span class="emoji" data-emoji="⚙️"></span><span class="label">Configuración</span>
-      </button>
-      <button data-view="ticket" class="nav-item">
-        <span class="emoji" data-emoji="🧾"></span><span class="label">Ticket 58mm</span>
-      </button>
+    <nav class="petpos-nav" id="nav">
+      <a href="#dashboard" class="nav-link active" data-icon="🏠">Dashboard</a>
+      <a href="#ventas" class="nav-link" data-icon="🛒">Ventas</a>
+      <a href="#inventario" class="nav-link" data-icon="📦">Inventario</a>
+      <a href="#clientes" class="nav-link" data-icon="👥">Clientes</a>
+      <a href="#historial" class="nav-link" data-icon="🧾">Historial</a>
+      <a href="#reportes" class="nav-link" data-icon="📈">Reportes</a>
+      <a href="#config" class="nav-link" data-icon="⚙️">Configuración</a>
+      <a href="#ticket58" class="nav-link" data-icon="🧾">Ticket 58mm</a>
     </nav>
 
-    <div class="madeby">NeuralApps</div>
+    <button class="collapse-btn" id="toggleSidebar" aria-label="Colapsar menú">☰</button>
   </aside>
 
-  <main class="main">
+  <main class="petpos-main" id="main">
+    <!-- DASHBOARD -->
+    <section id="dashboard" class="view visible">
+      <h1><span class="emoji-slot">📊</span> Dashboard</h1>
+      <div class="cards">
+        <div class="kcard"><div class="knum" id="kVentasHoy">$0.00</div><div class="klabel">Ventas de hoy</div></div>
+        <div class="kcard"><div class="knum" id="kTickets">0</div><div class="klabel">Tickets emitidos</div></div>
+        <div class="kcard"><div class="knum" id="kGanancia">$0.00</div><div class="klabel">Ganancia de hoy</div></div>
+        <div class="kcard"><div class="knum" id="kStock">0</div><div class="klabel">Productos en stock</div></div>
+      </div>
+    </section>
+
     <!-- VENTAS -->
-    <section id="view-ventas" class="view active">
-      <header class="view-header">
-        <h1><span class="emoji" data-emoji="🛒"></span> <span>Ventas</span></h1>
-        <div class="filters">
-          <input id="q" placeholder="Buscar nombre, SKU, categoría…" />
-          <select id="catFilter">
-            <option value="todas">Todas</option>
-          </select>
-          <input id="minPrice" type="number" inputmode="decimal" placeholder="Precio mín" />
-          <input id="maxPrice" type="number" inputmode="decimal" placeholder="Precio máx" />
-          <button id="btnClear" class="btn outline">
-            <span class="emoji" data-emoji="🧹"></span><span class="txt">Limpiar</span>
-          </button>
-        </div>
+    <section id="ventas" class="view">
+      <header class="ventas-bar">
+        <input id="buscar" class="input" placeholder="Buscar nombre, SKU, categoría" />
+        <select id="filtroCat" class="input"></select>
+        <input id="pMin" class="input" type="number" min="0" step="0.01" placeholder="Precio mín" />
+        <input id="pMax" class="input" type="number" min="0" step="0.01" placeholder="Precio máx" />
+        <button id="btnLimpiarFiltros" class="btn ghost">Limpiar</button>
       </header>
 
-      <div class="sales-grid">
-        <!-- Col A: Productos -->
-        <div class="products">
-          <h2>Productos</h2>
-          <div id="productGrid" class="product-grid"><!-- cards --></div>
-        </div>
+      <div class="ventas-layout">
+        <section class="productos">
+          <h2 class="sec-title"><span class="emoji-slot">🧺</span> Productos</h2>
+          <div id="gridProductos" class="product-grid"></div>
+        </section>
 
-        <!-- Col B: Carrito -->
-        <aside class="cart">
-          <h2><span class="emoji" data-emoji="🛍️"></span> <span>Carrito</span></h2>
+        <aside class="carrito">
+          <h2 class="sec-title"><span class="emoji-slot">🧾</span> Carrito</h2>
 
-          <div class="cart-row">
-            <input id="cliente" placeholder="👤 Cliente" />
-          </div>
-          <div class="cart-row two">
-            <select id="pago">
+          <div class="carrito-form">
+            <input id="clienteInput" class="input" placeholder="Cliente" />
+            <select id="pagoInput" class="input">
               <option>Efectivo</option>
               <option>Tarjeta</option>
               <option>Transferencia</option>
-              <option>Otro</option>
             </select>
-            <input id="recibio" placeholder="💵 Recibió (solo efectivo)" />
-          </div>
-          <div class="cart-row two">
-            <input id="desc" placeholder="💸 Descuento" />
-            <select id="moneda">
-              <option>$ MXN</option>
-              <option>$ USD</option>
-            </select>
+            <input id="recibioInput" class="input" type="number" step="0.01" placeholder="Recibió (solo efectivo)" />
+            <div class="row">
+              <input id="descInput" class="input" type="number" step="0.01" placeholder="Descuento" />
+              <select id="monedaInput" class="input">
+                <option>$ MXN</option>
+                <option>$ USD</option>
+              </select>
+            </div>
           </div>
 
-          <table class="cart-table" id="cartTable">
+          <table class="tabla">
             <thead>
-              <tr>
-                <th>Artículo</th><th>SKU</th><th>Stock</th><th>Cant.</th><th>P.Unit</th><th>Subt.</th><th></th>
-              </tr>
+              <tr><th>Artículo</th><th>SKU</th><th>Stock</th><th>Cant.</th><th>P.Unit</th><th>Subt.</th><th></th></tr>
             </thead>
-            <tbody id="cartBody"><tr><td colspan="7" class="muted">Sin productos</td></tr></tbody>
-            <tfoot id="cartFoot"></tfoot>
+            <tbody id="tbodyCarrito"><tr><td colspan="7" class="empty">Sin productos</td></tr></tbody>
           </table>
 
-          <div class="cart-actions">
-            <button id="btnVaciar" class="btn gray">
-              <span class="emoji" data-emoji="🗑️"></span><span class="txt">Borrar carrito</span>
-            </button>
-            <button id="btnCobrar" class="btn primary">
-              <span class="emoji" data-emoji="🖨️"></span><span class="txt">Confirmar & Imprimir</span>
-            </button>
+          <div class="totales">
+            <div><span>Subtotal</span><b id="tSubtotal">$0.00</b></div>
+            <div><span>Descuento</span><b id="tDesc">$0.00</b></div>
+            <div><span>Base IVA</span><b id="tBase">$0.00</b></div>
+            <div><span>IVA (16%)</span><b id="tIVA">$0.00</b></div>
+            <div class="total"><span>Total</span><b id="tTotal">$0.00</b></div>
+            <div><span>Cambio</span><b id="tCambio">$0.00</b></div>
           </div>
 
-          <div class="shortcuts muted">Atajos: <b>Ctrl+F</b> buscar • <b>Ctrl+B</b> cobrar • <b>Del</b> vaciar</div>
+          <div class="carrito-acciones">
+            <button id="vaciarBtn" class="btn danger outline"><span>🗑️</span> Borrar carrito</button>
+            <button id="cobrarBtn" class="btn primary"><span>🖨️</span> Confirmar & Imprimir</button>
+          </div>
+
+          <div class="atajos">
+            Atajos: <b>Ctrl+F</b> buscar • <b>Ctrl+B</b> cobrar • <b>Del</b> vaciar
+          </div>
         </aside>
       </div>
     </section>
 
-    <!-- INVENTARIO (placeholder corto para esta entrega) -->
-    <section id="view-inventario" class="view">
-      <h1><span class="emoji" data-emoji="📦"></span> <span>Inventario</span></h1>
-      <p class="muted">(En esta entrega nos enfocamos en emojis + ventas + ticket. Inventario completo vendrá en la siguiente iteración.)</p>
+    <!-- INVENTARIO -->
+    <section id="inventario" class="view">
+      <h1><span class="emoji-slot">📦</span> Inventario</h1>
+
+      <div class="inventario-form">
+        <input id="sku" class="input" placeholder="SKU" />
+        <input id="nombre" class="input" placeholder="Nombre" />
+        <input id="categoria" class="input" placeholder="Categoría" />
+        <input id="precio" class="input" type="number" min="0" step="0.01" placeholder="Precio" />
+        <input id="costo" class="input" type="number" min="0" step="0.01" placeholder="Costo" />
+        <input id="stock" class="input" type="number" min="0" step="1" placeholder="Stock" />
+        <input id="stockMin" class="input" type="number" min="0" step="1" placeholder="Stock mínimo" />
+        <input id="caducidad" class="input" type="date" />
+        <input id="lote" class="input" placeholder="Lote" />
+        <input id="imgUrl" class="input" placeholder="URL de imagen (opcional)" />
+        <label class="file-btn">
+          <input id="imgFile" type="file" accept="image/*" hidden />
+          📷 Subir imagen (se ajusta)
+        </label>
+        <button id="guardarProd" class="btn primary">Guardar</button>
+      </div>
+
+      <div class="inventario-list">
+        <div class="inventario-head">
+          <input id="buscarInv" class="input" placeholder="Buscar en inventario..." />
+          <button id="exportInv" class="btn ghost">Exportar CSV</button>
+        </div>
+        <table class="tabla">
+          <thead>
+            <tr>
+              <th>Imagen</th><th>SKU</th><th>Nombre</th><th>Categoría</th>
+              <th>Precio</th><th>Costo</th><th>Stock</th><th>Mín</th>
+              <th>Caducidad</th><th>Lote</th><th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyInv"></tbody>
+        </table>
+      </div>
     </section>
 
-    <!-- CLIENTES / HISTORIAL / REPORTES / TICKET (placeholders) -->
-    <section id="view-clientes" class="view"><h1><span class="emoji" data-emoji="👥"></span> <span>Clientes</span></h1></section>
-    <section id="view-historial" class="view"><h1><span class="emoji" data-emoji="📜"></span> <span>Historial</span></h1></section>
-    <section id="view-reportes" class="view"><h1><span class="emoji" data-emoji="📈"></span> <span>Reportes</span></h1></section>
-    <section id="view-ticket" class="view"><h1><span class="emoji" data-emoji="🧾"></span> <span>Ticket 58 mm</span></h1></section>
+    <!-- CLIENTES -->
+    <section id="clientes" class="view">
+      <h1><span class="emoji-slot">👥</span> Clientes</h1>
+      <p class="placeholder">(Placeholder seguro para no quedar en blanco. En la siguiente iteración activamos el módulo completo.)</p>
+    </section>
+
+    <!-- HISTORIAL -->
+    <section id="historial" class="view">
+      <h1><span class="emoji-slot">🧾</span> Historial</h1>
+      <p class="placeholder">(Aquí listaremos tickets con reimpresión/cancelación y filtros.)</p>
+    </section>
+
+    <!-- REPORTES -->
+    <section id="reportes" class="view">
+      <h1><span class="emoji-slot">📈</span> Reportes</h1>
+      <div class="placeholder stack">
+        <button id="exportVentasDet" class="btn ghost">Exportar ventas (detallado CSV)</button>
+        <div class="stack">
+          <button id="backupBtn" class="btn">Exportar respaldo</button>
+          <label class="file-btn">
+            <input id="restoreFile" type="file" accept="application/json" hidden />
+            📥 Importar respaldo
+          </label>
+        </div>
+      </div>
+    </section>
 
     <!-- CONFIGURACIÓN -->
-    <section id="view-config" class="view">
-      <h1><span class="emoji" data-emoji="⚙️"></span> <span>Configuración</span></h1>
+    <section id="config" class="view">
+      <h1><span class="emoji-slot">⚙️</span> Configuración</h1>
 
       <div class="card">
         <h3>Apariencia</h3>
+        <label><input type="checkbox" id="toggleEmojis" /> Usar emojis en la interfaz</label>
         <div class="row">
-          <label><input type="checkbox" id="cfgUseEmojis" /> Usar emojis en la interfaz</label>
+          <label><input type="radio" name="emojiStyle" value="compact"/> Estilo compacto (solo icono)</label>
+          <label><input type="radio" name="emojiStyle" value="detailed" checked/> Detallado (icono + texto)</label>
         </div>
-        <div class="row">
-          <label><input type="radio" name="emojiStyle" value="compact" checked /> Estilo compacto (solo icono)</label>
-          <label><input type="radio" name="emojiStyle" value="detailed" /> Detallado (icono + texto)</label>
-        </div>
-        <div class="row">
-          <label><input type="checkbox" id="cfgEmojisTicket" /> Mostrar emojis en el ticket</label>
-        </div>
+        <label><input type="checkbox" id="toggleEmojiTicket" /> Mostrar emojis en el ticket</label>
       </div>
 
       <div class="card">
         <h3>Identidad</h3>
-        <div class="row two">
-          <input id="cfgNombre" placeholder="Nombre del negocio" />
-          <input id="cfgEmail" placeholder="Email" />
+        <div class="grid2">
+          <input id="bizNombre" class="input" placeholder="Nombre del negocio" />
+          <input id="bizEmail" class="input" placeholder="Email" />
+          <input id="bizDireccion" class="input" placeholder="Dirección" />
+          <input id="bizTel" class="input" placeholder="Teléfono" />
         </div>
-        <div class="row two">
-          <input id="cfgDireccion" placeholder="Dirección" />
-          <input id="cfgTel" placeholder="Teléfono" />
-        </div>
-        <div class="row">
-          <label class="file">
-            <input type="file" id="cfgLogo" accept="image/*" />
-            <span>🖼️ Subir logo (se ajusta automáticamente)</span>
+        <div class="logo-uploader">
+          <label class="file-btn">
+            <input id="logoFile" type="file" accept="image/*" hidden />
+            🖼️ Subir logo (auto-ajuste)
           </label>
-          <img id="cfgLogoPreview" class="logo-preview" alt="preview" />
+          <img id="logoPreview" class="logo-preview" alt="preview" />
         </div>
-        <div class="row">
-          <button id="btnGuardarCfg" class="btn primary"><span class="emoji" data-emoji="💾"></span><span class="txt">Guardar</span></button>
-          <button id="btnResetCfg" class="btn gray"><span class="emoji" data-emoji="🔄"></span><span class="txt">Restablecer</span></button>
+        <div class="actions">
+          <button id="guardarConfig" class="btn primary">💾 Guardar</button>
+          <button id="restablecerConfig" class="btn ghost">↩️ Restablecer</button>
         </div>
       </div>
+    </section>
+
+    <!-- TICKET 58 -->
+    <section id="ticket58" class="view">
+      <h1><span class="emoji-slot">🧾</span> Ticket 58 mm</h1>
+      <p class="placeholder">La impresión se ajusta a 58 mm automáticamente. Prueba desde Ventas → “Confirmar & Imprimir”.</p>
     </section>
   </main>
 
