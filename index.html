@@ -2,268 +2,171 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>PetPOS · NeuralApps</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PetPOS Demo++</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!-- ====== SIDEBAR ====== -->
-  <aside class="sidebar">
+  <aside class="sidebar" id="sidebar">
     <div class="brand">
       <img id="brandLogo" alt="logo" />
       <span id="brandName">PetPOS</span>
     </div>
-    <nav class="navlist">
-      <button data-view="dashboard" class="nav active">Dashboard</button>
-      <button data-view="ventas" class="nav">Ventas</button>
-      <button data-view="inventario" class="nav">Inventario</button>
-      <button data-view="clientes" class="nav">Clientes</button>
-      <button data-view="historial" class="nav">Historial</button>
-      <button data-view="reportes" class="nav">Reportes</button>
-      <button data-view="config" class="nav">Configuración</button>
-      <button data-view="ticket58" class="nav">Ticket 58mm</button>
+
+    <nav class="nav">
+      <button data-view="dashboard" class="nav-item">
+        <span class="emoji" data-emoji="🏠"></span><span class="label">Dashboard</span>
+      </button>
+      <button data-view="ventas" class="nav-item active">
+        <span class="emoji" data-emoji="🛒"></span><span class="label">Ventas</span>
+      </button>
+      <button data-view="inventario" class="nav-item">
+        <span class="emoji" data-emoji="📦"></span><span class="label">Inventario</span>
+      </button>
+      <button data-view="clientes" class="nav-item">
+        <span class="emoji" data-emoji="👥"></span><span class="label">Clientes</span>
+      </button>
+      <button data-view="historial" class="nav-item">
+        <span class="emoji" data-emoji="📜"></span><span class="label">Historial</span>
+      </button>
+      <button data-view="reportes" class="nav-item">
+        <span class="emoji" data-emoji="📈"></span><span class="label">Reportes</span>
+      </button>
+      <button data-view="config" class="nav-item">
+        <span class="emoji" data-emoji="⚙️"></span><span class="label">Configuración</span>
+      </button>
+      <button data-view="ticket" class="nav-item">
+        <span class="emoji" data-emoji="🧾"></span><span class="label">Ticket 58mm</span>
+      </button>
     </nav>
-    <div class="foot">NeuralApps</div>
+
+    <div class="madeby">NeuralApps</div>
   </aside>
 
-  <!-- ====== MAIN ====== -->
-  <main class="content">
-    <!-- ========== DASH ========== -->
-    <section id="view-dashboard" class="view active">
-      <header class="header"><h1>Dashboard</h1></header>
-      <div class="row kpis">
-        <div class="card kpi"><div>Ventas de hoy</div><h2 id="kpi-ventas">$0.00</h2></div>
-        <div class="card kpi"><div>Tickets emitidos</div><h2 id="kpi-tickets">0</h2></div>
-        <div class="card kpi"><div>Productos en stock</div><h2 id="kpi-stock">0</h2></div>
-        <div class="card kpi"><div>Ganancia de hoy</div><h2 id="kpi-ganancia">$0.00</h2></div>
-      </div>
-      <div class="card">
-        <div class="row between">
-          <div class="title">Gráfica por fechas</div>
-          <div class="row gap">
-            <input type="date" id="dash-from">
-            <input type="date" id="dash-to">
-            <button class="btn" id="dash-apply">Aplicar</button>
+  <main class="main">
+    <!-- VENTAS -->
+    <section id="view-ventas" class="view active">
+      <header class="view-header">
+        <h1><span class="emoji" data-emoji="🛒"></span> <span>Ventas</span></h1>
+        <div class="filters">
+          <input id="q" placeholder="Buscar nombre, SKU, categoría…" />
+          <select id="catFilter">
+            <option value="todas">Todas</option>
+          </select>
+          <input id="minPrice" type="number" inputmode="decimal" placeholder="Precio mín" />
+          <input id="maxPrice" type="number" inputmode="decimal" placeholder="Precio máx" />
+          <button id="btnClear" class="btn outline">
+            <span class="emoji" data-emoji="🧹"></span><span class="txt">Limpiar</span>
+          </button>
+        </div>
+      </header>
+
+      <div class="sales-grid">
+        <!-- Col A: Productos -->
+        <div class="products">
+          <h2>Productos</h2>
+          <div id="productGrid" class="product-grid"><!-- cards --></div>
+        </div>
+
+        <!-- Col B: Carrito -->
+        <aside class="cart">
+          <h2><span class="emoji" data-emoji="🛍️"></span> <span>Carrito</span></h2>
+
+          <div class="cart-row">
+            <input id="cliente" placeholder="👤 Cliente" />
           </div>
-        </div>
-        <canvas id="chart" height="160"></canvas>
-      </div>
-    </section>
-
-    <!-- ========== VENTAS ========== -->
-    <section id="view-ventas" class="view">
-      <header class="header"><h1>Ventas</h1></header>
-      <div class="row gap wrap">
-        <input id="v-search" placeholder="Buscar nombre, SKU, categoría, lote…">
-        <select id="v-cat"></select>
-        <input id="v-min" type="number" step="0.01" placeholder="Precio mín">
-        <input id="v-max" type="number" step="0.01" placeholder="Precio máx">
-        <button class="btn" id="v-clear">Limpiar</button>
-      </div>
-
-      <div class="panel2">
-        <div class="card">
-          <div class="title">Productos</div>
-          <div id="v-grid" class="grid"></div>
-        </div>
-
-        <div class="card cartcard">
-          <div class="title">Carrito</div>
-          <div class="row gap wrap">
-            <input id="v-customer" list="v-customers" placeholder="Cliente">
-            <datalist id="v-customers"></datalist>
-            <select id="v-pay">
-              <option>Efectivo</option><option>Tarjeta</option><option>Transferencia</option>
+          <div class="cart-row two">
+            <select id="pago">
+              <option>Efectivo</option>
+              <option>Tarjeta</option>
+              <option>Transferencia</option>
+              <option>Otro</option>
             </select>
-            <input id="v-cash" type="number" step="0.01" placeholder="Recibió (solo efectivo)">
+            <input id="recibio" placeholder="💵 Recibió (solo efectivo)" />
           </div>
-          <div class="row gap wrap">
-            <input id="v-discount" type="number" step="0.01" placeholder="Descuento">
-            <select id="v-discount-type"><option value="amount">$ MXN</option><option value="percent">% Porcentaje</option></select>
-          </div>
-
-          <div class="cartwrap">
-            <table class="table">
-              <thead><tr><th>Artículo</th><th>SKU</th><th>Stock</th><th>Cant.</th><th>P.Unit</th><th>Subt.</th><th></th></tr></thead>
-              <tbody id="v-cart"><tr><td colspan="7" class="muted">Sin productos</td></tr></tbody>
-              <tfoot>
-                <tr><td colspan="5">Subtotal</td><td id="v-sub">$0.00</td><td></td></tr>
-                <tr><td colspan="5">Descuento</td><td id="v-disc">$0.00</td><td></td></tr>
-                <tr><td colspan="5">Base IVA</td><td id="v-base">$0.00</td><td></td></tr>
-                <tr><td colspan="5">IVA</td><td id="v-iva">$0.00</td><td></td></tr>
-                <tr><td colspan="5">Total</td><td id="v-total">$0.00</td><td></td></tr>
-                <tr><td colspan="5">Cambio</td><td id="v-change">$0.00</td><td></td></tr>
-              </tfoot>
-            </table>
+          <div class="cart-row two">
+            <input id="desc" placeholder="💸 Descuento" />
+            <select id="moneda">
+              <option>$ MXN</option>
+              <option>$ USD</option>
+            </select>
           </div>
 
-          <div class="row gap">
-            <button class="btn gray" id="v-clear-cart">Borrar carrito</button>
-            <button class="btn" id="v-checkout">Confirmar & Imprimir</button>
+          <table class="cart-table" id="cartTable">
+            <thead>
+              <tr>
+                <th>Artículo</th><th>SKU</th><th>Stock</th><th>Cant.</th><th>P.Unit</th><th>Subt.</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="cartBody"><tr><td colspan="7" class="muted">Sin productos</td></tr></tbody>
+            <tfoot id="cartFoot"></tfoot>
+          </table>
+
+          <div class="cart-actions">
+            <button id="btnVaciar" class="btn gray">
+              <span class="emoji" data-emoji="🗑️"></span><span class="txt">Borrar carrito</span>
+            </button>
+            <button id="btnCobrar" class="btn primary">
+              <span class="emoji" data-emoji="🖨️"></span><span class="txt">Confirmar & Imprimir</span>
+            </button>
           </div>
-        </div>
+
+          <div class="shortcuts muted">Atajos: <b>Ctrl+F</b> buscar • <b>Ctrl+B</b> cobrar • <b>Del</b> vaciar</div>
+        </aside>
       </div>
     </section>
 
-    <!-- ========== INVENTARIO ========== -->
+    <!-- INVENTARIO (placeholder corto para esta entrega) -->
     <section id="view-inventario" class="view">
-      <header class="header"><h1>Inventario</h1></header>
-
-      <div class="card">
-        <div class="row gap wrap">
-          <input id="p-sku" placeholder="SKU">
-          <input id="p-name" placeholder="Nombre">
-          <input id="p-cat" list="p-cats" placeholder="Categoría">
-          <datalist id="p-cats"></datalist>
-          <input id="p-new-cat" placeholder="Nueva categoría (opcional)">
-          <input id="p-price" type="number" step="0.01" placeholder="Precio">
-          <input id="p-cost" type="number" step="0.01" placeholder="Costo">
-          <input id="p-stock" type="number" step="1" placeholder="Stock">
-          <input id="p-min" type="number" step="1" placeholder="Stock mínimo">
-          <input id="p-exp" type="date" placeholder="Caducidad">
-          <input id="p-lot" placeholder="Lote">
-          <!-- SUBIR IMAGEN DESDE DISPOSITIVO -->
-          <input id="p-img-file" type="file" accept="image/*" />
-          <input id="p-img" placeholder="URL de imagen (opcional)">
-          <input id="p-desc" placeholder="Descripción">
-          <button class="btn" id="p-save">Guardar</button>
-          <button class="btn gray" id="p-new">Nuevo</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="row between">
-          <div class="title">Listado</div>
-          <div class="row gap">
-            <input id="p-find" placeholder="Buscar SKU, nombre, categoría o lote…">
-            <button class="btn" id="p-export">Exportar CSV</button>
-          </div>
-        </div>
-
-        <table class="table">
-          <thead><tr>
-            <th>Imagen</th><th>SKU</th><th>Nombre</th><th>Categoría</th>
-            <th>Precio</th><th>Costo</th><th>Stock</th><th>Mín</th>
-            <th>Caducidad</th><th>Lote</th><th></th>
-          </tr></thead>
-          <tbody id="p-body"><tr><td class="muted" colspan="11">Sin productos</td></tr></tbody>
-        </table>
-      </div>
+      <h1><span class="emoji" data-emoji="📦"></span> <span>Inventario</span></h1>
+      <p class="muted">(En esta entrega nos enfocamos en emojis + ventas + ticket. Inventario completo vendrá en la siguiente iteración.)</p>
     </section>
 
-    <!-- ========== CLIENTES ========== -->
-    <section id="view-clientes" class="view">
-      <header class="header"><h1>Clientes</h1></header>
-      <div class="card">
-        <div class="row gap wrap">
-          <input id="c-name" placeholder="Nombre">
-          <input id="c-phone" placeholder="Teléfono">
-          <input id="c-email" placeholder="Email">
-          <input id="c-notes" placeholder="Notas">
-          <button class="btn" id="c-save">Guardar</button>
-          <button class="btn gray" id="c-new">Nuevo</button>
-          <button class="btn" id="c-export">Exportar CSV</button>
-        </div>
-      </div>
-      <div class="card">
-        <div class="row between"><div class="title">Listado</div><input id="c-find" placeholder="Buscar…"></div>
-        <table class="table">
-          <thead><tr><th>Nombre</th><th>Teléfono</th><th>Email</th><th>Visitas</th><th>Última compra</th><th></th></tr></thead>
-          <tbody id="c-body"><tr><td colspan="6" class="muted">Sin clientes</td></tr></tbody>
-        </table>
-      </div>
-    </section>
+    <!-- CLIENTES / HISTORIAL / REPORTES / TICKET (placeholders) -->
+    <section id="view-clientes" class="view"><h1><span class="emoji" data-emoji="👥"></span> <span>Clientes</span></h1></section>
+    <section id="view-historial" class="view"><h1><span class="emoji" data-emoji="📜"></span> <span>Historial</span></h1></section>
+    <section id="view-reportes" class="view"><h1><span class="emoji" data-emoji="📈"></span> <span>Reportes</span></h1></section>
+    <section id="view-ticket" class="view"><h1><span class="emoji" data-emoji="🧾"></span> <span>Ticket 58 mm</span></h1></section>
 
-    <!-- ========== HISTORIAL ========== -->
-    <section id="view-historial" class="view">
-      <header class="header"><h1>Historial de ventas</h1></header>
-      <div class="card">
-        <div class="row gap wrap">
-          <input type="date" id="h-from"><input type="date" id="h-to">
-          <input id="h-find" placeholder="Cliente, ticket…">
-          <button class="btn" id="h-export">Exportar CSV</button>
-        </div>
-        <table class="table">
-          <thead><tr><th>Fecha</th><th>Cliente</th><th>Método</th><th>Total</th><th></th></tr></thead>
-          <tbody id="h-body"><tr><td colspan="5" class="muted">Sin ventas</td></tr></tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- ========== REPORTES ========== -->
-    <section id="view-reportes" class="view">
-      <header class="header"><h1>Reportes</h1></header>
-      <div class="card">
-        <div class="row gap wrap">
-          <input type="date" id="r-from"><input type="date" id="r-to">
-          <button class="btn" id="r-apply">Aplicar</button>
-          <button class="btn" id="r-export-detailed">Exportar CSV Detallado</button>
-          <button class="btn" id="r-export-summary">Exportar CSV Resumen</button>
-          <button class="btn" id="r-backup">Exportar Respaldo</button>
-          <label class="btn filelabel">
-            Importar Respaldo
-            <input id="r-restore" type="file" accept=".json,application/json" hidden />
-          </label>
-        </div>
-        <div class="row kpis">
-          <div class="card kpi"><div>Ventas</div><h2 id="r-ventas">$0.00</h2></div>
-          <div class="card kpi"><div>Ganancia</div><h2 id="r-gan">$0.00</h2></div>
-          <div class="card kpi"><div>Tickets</div><h2 id="r-ticks">0</h2></div>
-          <div class="card kpi"><div>TOP producto</div><h2 id="r-top">—</h2></div>
-        </div>
-        <canvas id="report-chart" height="160"></canvas>
-      </div>
-    </section>
-
-    <!-- ========== CONFIG ========== -->
+    <!-- CONFIGURACIÓN -->
     <section id="view-config" class="view">
-      <header class="header"><h1>Configuración</h1></header>
+      <h1><span class="emoji" data-emoji="⚙️"></span> <span>Configuración</span></h1>
 
       <div class="card">
-        <div class="title">Apariencia</div>
-        <div class="row gap wrap">
-          <label>Fondo <input type="color" id="cfg-bg"></label>
-          <label>Panel <input type="color" id="cfg-card"></label>
-          <label>Menú <input type="color" id="cfg-menu"></label>
-          <label>Primario <input type="color" id="cfg-pri"></label>
-          <label>Texto <input type="color" id="cfg-txt"></label>
-          <label>Subtexto <input type="color" id="cfg-muted"></label>
-          <button class="btn" id="cfg-save">Guardar</button>
-          <button class="btn gray" id="cfg-reset">Restablecer</button>
+        <h3>Apariencia</h3>
+        <div class="row">
+          <label><input type="checkbox" id="cfgUseEmojis" /> Usar emojis en la interfaz</label>
+        </div>
+        <div class="row">
+          <label><input type="radio" name="emojiStyle" value="compact" checked /> Estilo compacto (solo icono)</label>
+          <label><input type="radio" name="emojiStyle" value="detailed" /> Detallado (icono + texto)</label>
+        </div>
+        <div class="row">
+          <label><input type="checkbox" id="cfgEmojisTicket" /> Mostrar emojis en el ticket</label>
         </div>
       </div>
 
       <div class="card">
-        <div class="title">Ticket / Identidad</div>
-        <div class="row gap wrap">
-          <label>IVA % <input id="cfg-iva" type="number" step="0.01" min="0"></label>
-          <input id="cfg-msg" placeholder="Mensaje en ticket">
-          <!-- SUBIR LOGO DESDE DISPOSITIVO -->
-          <label class="btn filelabel">
-            Subir logo
-            <input id="cfg-logo-file" type="file" accept="image/*" hidden />
+        <h3>Identidad</h3>
+        <div class="row two">
+          <input id="cfgNombre" placeholder="Nombre del negocio" />
+          <input id="cfgEmail" placeholder="Email" />
+        </div>
+        <div class="row two">
+          <input id="cfgDireccion" placeholder="Dirección" />
+          <input id="cfgTel" placeholder="Teléfono" />
+        </div>
+        <div class="row">
+          <label class="file">
+            <input type="file" id="cfgLogo" accept="image/*" />
+            <span>🖼️ Subir logo (se ajusta automáticamente)</span>
           </label>
-          <input id="cfg-logo" placeholder="URL logo (opcional)">
-          <input id="cfg-name" placeholder="Nombre del negocio">
-          <input id="cfg-addr" placeholder="Dirección">
-          <input id="cfg-phone" placeholder="Teléfono">
-          <input id="cfg-email" placeholder="Email">
-          <input id="cfg-social" placeholder="Redes (texto)">
-          <button class="btn" id="cfg-ticket-save">Guardar ticket</button>
+          <img id="cfgLogoPreview" class="logo-preview" alt="preview" />
         </div>
-        <div class="row gap wrap">
-          <img id="previewLogoMenu" class="logo-menu" alt="logo menú" />
-          <img id="previewLogoTicket" class="logo-ticket" alt="logo ticket" />
+        <div class="row">
+          <button id="btnGuardarCfg" class="btn primary"><span class="emoji" data-emoji="💾"></span><span class="txt">Guardar</span></button>
+          <button id="btnResetCfg" class="btn gray"><span class="emoji" data-emoji="🔄"></span><span class="txt">Restablecer</span></button>
         </div>
-      </div>
-    </section>
-
-    <!-- ========== TICKET 58 ========== -->
-    <section id="view-ticket58" class="view">
-      <header class="header"><h1>Vista Ticket 58mm</h1></header>
-      <div class="card">
-        <div id="ticket-preview" class="ticket58">Previsualización de ticket…</div>
-        <div class="row gap"><button class="btn" id="t-print">Imprimir</button></div>
       </div>
     </section>
   </main>

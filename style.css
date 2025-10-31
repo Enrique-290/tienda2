@@ -1,60 +1,125 @@
 :root{
-  --bg:#f6f7fb; --card:#ffffff; --menu:#0f172a; --pri:#2563eb;
-  --txt:#0b1220; --muted:#6b7280; --bd:#e5e7eb;
+  --bg:#f5f7fb;
+  --panel:#ffffff;
+  --ink:#0f172a;
+  --muted:#6b7280;
+  --primary:#2563eb;
+  --primary-ink:#fff;
+  --soft:#e5e7eb;
+  --success:#16a34a;
+  --danger:#ef4444;
 }
-*{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--txt)}
-/* Sidebar fijo con active dentro del contorno */
-.sidebar{position:fixed;inset:0 auto 0 0;width:260px;background:var(--menu);color:#fff;display:flex;flex-direction:column}
-.brand{display:flex;align-items:center;gap:10px;padding:16px;border-bottom:1px solid rgba(255,255,255,.08)}
-.brand img{height:26px;width:auto;object-fit:contain;filter:brightness(1)}
-.navlist{padding:10px}
-.nav{all:unset;display:block;width:100%;padding:10px 14px;border-radius:10px;margin:4px 0;cursor:pointer;white-space:nowrap}
-.nav:hover{background:rgba(255,255,255,.08)}
-.nav.active{background:#fff;color:var(--menu);font-weight:700;box-shadow:inset 0 0 0 2px rgba(0,0,0,.05)}
-.foot{margin-top:auto;padding:10px 14px;color:#cbd5e1;font-size:12px}
 
-.content{margin-left:260px;padding:18px}
-.header{display:flex;align-items:center;justify-content:space-between;margin:6px 0 12px}
-.row{display:flex;gap:10px;align-items:center}
-.between{justify-content:space-between}.gap{gap:10px}.wrap{flex-wrap:wrap}
-.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px}
-.title{font-weight:700;margin-bottom:8px}
-.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
-.kpi h2{margin:6px 0 0}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
+  background:var(--bg); color:var(--ink); display:flex;
+}
 
-.panel2{display:grid;grid-template-columns:1.2fr .9fr;gap:12px}
-.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-.product{border:1px solid var(--bd);border-radius:12px;padding:10px;display:grid;grid-template-columns:72px 1fr;gap:10px;align-items:center}
-.product img{width:72px;height:72px;object-fit:cover;border-radius:8px;border:1px solid var(--bd)}
-.product .pname{font-weight:700}
-.product .muted{color:var(--muted)}
-.btn{border:1px solid var(--pri);background:var(--pri);color:#fff;border-radius:10px;padding:9px 12px;cursor:pointer}
-.btn.gray{background:#6b7280;border-color:#6b7280}
-.btn.filelabel{display:inline-flex;align-items:center}
-input,select{border:1px solid var(--bd);border-radius:10px;padding:9px 12px;background:#fff}
+/* Sidebar */
+.sidebar{
+  width:260px; background:#0b1220; color:#c7d2fe; display:flex; flex-direction:column;
+  position:sticky; top:0; height:100vh;
+}
+.brand{display:flex; align-items:center; gap:.6rem; padding:1rem 1.25rem; border-bottom:1px solid rgba(255,255,255,.08)}
+.brand img{width:28px; height:28px; border-radius:6px; background:#111; object-fit:cover}
+.brand #brandName{font-weight:700; color:#fff}
 
-.table{width:100%;border-collapse:collapse}
-.table th,.table td{padding:8px;border-bottom:1px solid var(--bd);text-align:left}
+.nav{padding:.5rem}
+.nav-item{
+  width:100%; background:transparent; color:#c7d2fe; border:0; text-align:left; padding:.75rem 1rem; border-radius:.75rem;
+  display:flex; gap:.6rem; align-items:center; position:relative; cursor:pointer;
+}
+.nav-item .emoji{width:1.25rem; text-align:center; opacity:.95}
+.nav-item.active{
+  background:linear-gradient(180deg, rgba(59,130,246,.16), rgba(59,130,246,.06));
+  color:#fff;
+}
+/* Borde activo que no “saca” el botón */
+.nav-item.active::before{
+  content:""; position:absolute; inset:0; border:1.5px solid rgba(59,130,246,.7); border-radius:.75rem; pointer-events:none;
+}
+.nav-item:hover{background:rgba(255,255,255,.06)}
+
+.madeby{margin-top:auto; padding:1rem; font-size:.85rem; color:#9aa7ff; opacity:.7}
+
+/* Main */
+.main{flex:1; padding:1.25rem 1.5rem}
+.view{display:none}
+.view.active{display:block}
+
+.view-header{display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:1rem}
+.view-header h1{margin:0; font-size:1.6rem; display:flex; align-items:center; gap:.5rem}
+.filters{display:flex; gap:.5rem; flex-wrap:wrap}
+.filters input, .filters select{padding:.6rem .75rem; border:1px solid var(--soft); border-radius:.7rem; background:#fff}
+
+/* Botones */
+.btn{border:0; border-radius:.8rem; padding:.7rem .95rem; display:inline-flex; gap:.5rem; align-items:center; cursor:pointer; font-weight:600}
+.btn .emoji{width:1.2rem; text-align:center}
+.btn.primary{background:var(--primary); color:var(--primary-ink)}
+.btn.gray{background:#e5e7eb; color:#111}
+.btn.outline{background:transparent; border:1px solid var(--soft)}
+.btn:active{transform:translateY(1px)}
+
+/* Grid ventas: productos | carrito */
+.sales-grid{
+  display:grid; grid-template-columns: 1fr 420px; gap:1.25rem;
+}
+.products, .cart{background:var(--panel); border-radius:1rem; padding:1rem}
+.products h2, .cart h2{margin:.2rem 0 1rem}
 .muted{color:var(--muted)}
-.view{display:none}.view.active{display:block}
 
-.cartcard{max-height:720px}
-.cartwrap{max-height:380px;overflow:auto;border:1px dashed var(--bd);border-radius:10px;padding:6px}
-
-.ticket58{width:270px;white-space:pre-wrap;border:1px dashed var(--bd);padding:10px;background:#fff;border-radius:10px}
-
-.logo-menu{height:28px;object-fit:contain;background:#fff;border:1px solid var(--bd);border-radius:8px;padding:4px}
-.logo-ticket{height:60px;object-fit:contain;background:#fff;border:1px solid var(--bd);border-radius:8px;padding:4px}
-
-/* RESPONSIVE */
-@media (max-width:1200px){
-  .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .panel2{grid-template-columns:1fr}
+/* Product grid */
+.product-grid{
+  display:grid; gap:1rem;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
 }
-@media (max-width:800px){
-  .grid{grid-template-columns:1fr}
-  .content{margin-left:0}
-  .sidebar{position:static;width:auto;flex-direction:row}
-  .navlist{display:flex;overflow:auto}
-  .nav{flex:0 0 auto}
+.card{
+  background:var(--panel); border:1px solid var(--soft); border-radius:1rem; padding:1rem;
+}
+.pcard{
+  display:flex; gap:1rem; border:1px solid var(--soft); border-radius:1rem; padding:1rem; background:#fff;
+  min-height:122px;
+}
+.pthumb{
+  width:72px; height:72px; border-radius:.75rem; background:#f1f5f9; display:grid; place-items:center; color:#64748b; font-weight:700;
+  flex:0 0 72px; user-select:none;
+}
+.pbody{display:flex; flex-direction:column; gap:.35rem; min-width:0}
+.pname{font-weight:700}
+.pmeta{font-size:.9rem; color:var(--muted)}
+.pprice{font-weight:800; margin-top:.25rem}
+.prow{display:flex; gap:.6rem; align-items:center; margin-top:.5rem}
+.qty{width:64px; padding:.45rem .6rem; border:1px solid var(--soft); border-radius:.7rem}
+
+/* Cart */
+.cart-row{display:flex; gap:.6rem; margin:.35rem 0}
+.cart-row.two > *{flex:1}
+.cart-table{width:100%; border-collapse:collapse; margin-top:.5rem}
+.cart-table th, .cart-table td{border-bottom:1px solid var(--soft); padding:.5rem .25rem; text-align:left; font-size:.95rem}
+.cart-table td:last-child{width:36px}
+.badge{background:#eef2ff; color:#3730a3; padding:.15rem .45rem; border-radius:.5rem; font-size:.75rem; font-weight:700}
+.cart-actions{display:flex; gap:.6rem; justify-content:flex-end; margin-top:.8rem}
+
+/* Config */
+.row{display:flex; gap:.8rem; align-items:center; margin:.6rem 0; flex-wrap:wrap}
+.row.two > *{flex:1}
+.file input{display:none}
+.file span{display:inline-block; background:#eef2ff; color:#1e3a8a; padding:.6rem .8rem; border-radius:.6rem; cursor:pointer}
+.logo-preview{height:44px; border-radius:.5rem; border:1px solid var(--soft); background:#fff; padding:.25rem}
+
+/* Ticket logo */
+.ticket-logo{max-width:120px; max-height:120px; object-fit:contain; display:block; margin:0 auto .35rem}
+@media print{
+  .ticket-logo{width:170px; max-height:170px}
+}
+
+/* Responsive */
+@media (max-width: 1100px){
+  .sales-grid{grid-template-columns: 1fr 360px}
+}
+@media (max-width: 900px){
+  .sales-grid{grid-template-columns: 1fr}
+  .cart{order:2}
 }
