@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>PetPOS – TPV Mascotas (Demo+)</title>
+  <title>PetPOS – TPV Mascotas (Clientes)</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header>
-    <h1>🐾 PetPOS Demo+</h1>
-    <span class="badge">Pruebas: clientes, descuento, historial, stock</span>
+    <h1>🐾 PetPOS Demo++</h1>
+    <span class="badge">Clientes, descuento, historial, stock</span>
   </header>
 
   <div class="wrap">
@@ -35,7 +35,8 @@
       <h2>Carrito</h2>
 
       <div class="form-inline">
-        <input id="customer" placeholder="Cliente (opcional)" />
+        <input id="customer" list="clientsList" placeholder="Cliente (elige o escribe)" />
+        <datalist id="clientsList"></datalist>
         <select id="payment">
           <option value="Efectivo">Pago: Efectivo</option>
           <option value="Tarjeta">Pago: Tarjeta</option>
@@ -70,11 +71,31 @@
       <div class="row-actions">
         <button id="clearCart" class="btn gray">Vaciar</button>
         <button id="checkout" class="btn">Cobrar & Imprimir</button>
-        <button id="exportCSV" class="btn outline">Descargar CSV</button>
+        <button id="exportCSV" class="btn outline">Descargar ventas CSV</button>
       </div>
       <small class="muted">Atajos: <b>Ctrl+F</b> buscar • <b>Ctrl+B</b> cobrar • <b>Del</b> vaciar</small>
     </aside>
   </div>
+
+  <!-- CLIENTES -->
+  <section class="panel" style="max-width:1300px;margin:0 auto 24px; padding:16px">
+    <h2>Clientes</h2>
+    <div class="form-inline">
+      <input id="c_name" placeholder="Nombre" />
+      <input id="c_phone" placeholder="Teléfono" />
+      <input id="c_email" placeholder="Email" />
+      <input id="c_notes" placeholder="Notas" />
+      <button id="saveClient" class="btn">Guardar</button>
+      <button id="resetClient" class="btn gray">Nuevo</button>
+      <button id="exportClients" class="btn outline">Exportar clientes CSV</button>
+    </div>
+    <table>
+      <thead>
+        <tr><th>Nombre</th><th>Teléfono</th><th>Email</th><th>Visitas</th><th>Última compra</th><th></th></tr>
+      </thead>
+      <tbody id="clientsTable"><tr><td colspan="6" class="muted">Sin clientes</td></tr></tbody>
+    </table>
+  </section>
 
   <script src="script.js"></script>
 </body>
